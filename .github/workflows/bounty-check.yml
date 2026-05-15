@@ -1,0 +1,17 @@
+name: Bounty Docs Check
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  docs-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure required docs exist
+        run: |
+          test -f README.md
+          test -f BOUNTY.md
+          echo "Docs baseline OK"
