@@ -1,0 +1,759 @@
+<title>Ikat Target Toko</title>
+<style>
+  :root {
+    --paper: #F1F3F2;
+    --surface: #FFFFFF;
+    --surface-2: #E7ECEA;
+    --ink: #131C21;
+    --ink-2: #3C4A50;
+    --muted: #6D7F86;
+    --line: #D6DDDB;
+    --line-strong: #BCC7C4;
+    --mid: #0E6E62;
+    --mid-soft: rgba(14, 110, 98, .10);
+    --max: #B4460E;
+    --max-soft: rgba(180, 70, 14, .10);
+    --on-accent: #FFFFFF;
+    --shadow: 0 1px 2px rgba(19, 28, 33, .05), 0 10px 28px -18px rgba(19, 28, 33, .35);
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --r: 10px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0D1417;
+      --surface: #141E22;
+      --surface-2: #1C272C;
+      --ink: #E9EFED;
+      --ink-2: #B4C2C4;
+      --muted: #7E9096;
+      --line: #25333A;
+      --line-strong: #35474E;
+      --mid: #43B8A4;
+      --mid-soft: rgba(67, 184, 164, .14);
+      --max: #F08A4B;
+      --max-soft: rgba(240, 138, 75, .14);
+      --on-accent: #08120F;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 28px -18px rgba(0, 0, 0, .85);
+    }
+  }
+
+  :root[data-theme="light"] {
+    --paper: #F1F3F2;
+    --surface: #FFFFFF;
+    --surface-2: #E7ECEA;
+    --ink: #131C21;
+    --ink-2: #3C4A50;
+    --muted: #6D7F86;
+    --line: #D6DDDB;
+    --line-strong: #BCC7C4;
+    --mid: #0E6E62;
+    --mid-soft: rgba(14, 110, 98, .10);
+    --max: #B4460E;
+    --max-soft: rgba(180, 70, 14, .10);
+    --on-accent: #FFFFFF;
+    --shadow: 0 1px 2px rgba(19, 28, 33, .05), 0 10px 28px -18px rgba(19, 28, 33, .35);
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #0D1417;
+    --surface: #141E22;
+    --surface-2: #1C272C;
+    --ink: #E9EFED;
+    --ink-2: #B4C2C4;
+    --muted: #7E9096;
+    --line: #25333A;
+    --line-strong: #35474E;
+    --mid: #43B8A4;
+    --mid-soft: rgba(67, 184, 164, .14);
+    --max: #F08A4B;
+    --max-soft: rgba(240, 138, 75, .14);
+    --on-accent: #08120F;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 28px -18px rgba(0, 0, 0, .85);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 16px 96px; }
+
+  .lbl {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .unit { font-size: .62em; font-weight: 400; color: var(--muted); margin-left: .35em; letter-spacing: 0; }
+
+  /* ---------- masthead ---------- */
+  .mast { padding: 26px 0 16px; }
+  .mast h1 { margin: 0; font-size: 23px; font-weight: 680; letter-spacing: -.02em; }
+  .mast p { margin: 3px 0 0; color: var(--muted); font-size: 13.5px; max-width: 62ch; }
+
+  /* ---------- scope pickers ---------- */
+  .scope {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .field select, input[type="search"] {
+    font: inherit;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 11px;
+    width: 100%;
+    min-width: 0;
+  }
+  .field select:hover { border-color: var(--line-strong); }
+
+  /* ---------- summary ---------- */
+  .summary {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--shadow);
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+  .summary-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px 14px;
+  }
+  #totalNum {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: clamp(26px, 7vw, 34px);
+    font-weight: 600;
+    letter-spacing: -.03em;
+    line-height: 1.15;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 3px 9px;
+    font-size: 12px;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+  .chip b { font-family: var(--mono); font-variant-numeric: tabular-nums; font-weight: 600; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  .dot.m { background: var(--mid); }
+  .dot.x { background: var(--max); }
+
+  .bar { display: flex; height: 6px; margin-top: 12px; border-radius: 999px; overflow: hidden; background: var(--surface-2); }
+  .bar span { transition: width .35s cubic-bezier(.4, 0, .2, 1); }
+  .bar .b-m { background: var(--mid); }
+  .bar .b-x { background: var(--max); }
+
+  #delta { margin-top: 9px; font-size: 13px; color: var(--ink-2); }
+  #delta .num { font-weight: 600; color: var(--mid); }
+  #delta.flat .num { color: var(--muted); }
+
+  /* ---------- toolbar ---------- */
+  .tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+  .tools input[type="search"] { flex: 1 1 200px; }
+
+  .btn {
+    font: inherit;
+    font-size: 13.5px;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--line-strong); background: var(--surface-2); }
+  .btn[aria-pressed="true"] { background: var(--surface-2); border-color: var(--line-strong); font-weight: 560; }
+
+  .seg { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg .btn { border: 0; border-radius: 0; }
+  .seg .btn + .btn { border-left: 1px solid var(--line); }
+
+  :focus-visible { outline: 2px solid var(--mid); outline-offset: 2px; }
+
+  /* ---------- outlet rows ---------- */
+  .list { display: flex; flex-direction: column; gap: 8px; }
+
+  .row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--line-strong);
+    border-radius: var(--r);
+    padding: 12px 13px;
+  }
+  .row[data-pick="mid"] { border-left-color: var(--mid); }
+  .row[data-pick="max"] { border-left-color: var(--max); }
+
+  .row-id { min-width: 0; }
+  .row-name { font-weight: 600; letter-spacing: -.01em; overflow-wrap: anywhere; }
+  .row-meta { display: flex; flex-wrap: wrap; gap: 2px 8px; margin-top: 2px; font-size: 12.5px; color: var(--muted); }
+  /* Pemisah menempel di depan item, jadi tidak menggantung di ujung baris saat wrap. */
+  .row-meta > span + span::before { content: "·"; margin-right: 8px; color: var(--line-strong); }
+  .row-addr { margin-top: 2px; font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
+
+  /* dasar target: tiga rata-rata per minggu */
+  .basis { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+  .bas {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 4px 8px 5px;
+    min-width: 96px;
+  }
+  .bas-lab { font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .bas-val { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 13px; color: var(--ink-2); }
+  .bas[data-rank="max"] { border-color: var(--max); color: var(--max); }
+  .bas[data-rank="mid"] { border-color: var(--mid); color: var(--mid); }
+  .bas[data-rank="max"] .bas-val, .bas[data-rank="mid"] .bas-val,
+  .bas[data-rank="max"] .bas-lab, .bas[data-rank="mid"] .bas-lab { color: inherit; }
+
+  .levels { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-content: start; }
+  .lvl {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+    font: inherit;
+    text-align: left;
+    background: var(--surface);
+    color: var(--ink-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 7px 10px 8px;
+    cursor: pointer;
+    transition: background .15s, border-color .15s, color .15s;
+  }
+  .lvl:hover { border-color: var(--line-strong); }
+  .lvl-tag { font-family: var(--mono); font-size: 10px; letter-spacing: .13em; text-transform: uppercase; color: var(--muted); }
+  .lvl-num { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 15px; font-weight: 560; letter-spacing: -.02em; }
+  .lvl-sub { font-size: 11px; color: var(--muted); }
+  .lvl[data-lvl="mid"][aria-pressed="true"] { background: var(--mid-soft); border-color: var(--mid); color: var(--mid); }
+  .lvl[data-lvl="max"][aria-pressed="true"] { background: var(--max-soft); border-color: var(--max); color: var(--max); }
+  .lvl[aria-pressed="true"] .lvl-tag, .lvl[aria-pressed="true"] .lvl-sub { color: inherit; }
+  .lvl[data-same="1"] { opacity: .62; }
+
+  .empty { text-align: center; color: var(--muted); padding: 44px 16px; font-size: 14px; }
+
+  @media (min-width: 720px) {
+    .row { grid-template-columns: 1fr 296px; align-items: start; }
+  }
+
+  footer { margin-top: 26px; font-size: 12.5px; color: var(--muted); }
+  footer p { margin: 0 0 5px; max-width: 74ch; }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 22px;
+    transform: translate(-50%, 12px);
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 13.5px;
+    padding: 9px 15px;
+    border-radius: 999px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s, transform .2s;
+    z-index: 60;
+  }
+  .toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <h1>Ikat Target Toko</h1>
+    <p>
+      Target tiap outlet dihitung dari rata-rata penjualan per minggu. Sheet selalu mengambil
+      angka <strong>tertinggi</strong> dari tiga periode. Di sini sales boleh memilih
+      angka <strong>tengah</strong> — tidak harus yang tertinggi.
+    </p>
+  </header>
+
+  <div class="scope">
+    <div class="field">
+      <label class="lbl" for="selVersion">Versi target</label>
+      <select id="selVersion"></select>
+    </div>
+    <div class="field">
+      <label class="lbl" for="selSales">Sales</label>
+      <select id="selSales"></select>
+    </div>
+    <div class="field">
+      <label class="lbl" for="selPeriod">Periode</label>
+      <select id="selPeriod"></select>
+    </div>
+  </div>
+
+  <section class="summary" aria-label="Ringkasan target">
+    <div class="summary-top">
+      <div>
+        <div class="lbl" id="totalLabel">Total target terpilih</div>
+        <div id="totalNum">0</div>
+      </div>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="bar" aria-hidden="true">
+      <span class="b-m" id="barMid" style="width:0%"></span>
+      <span class="b-x" id="barMax" style="width:0%"></span>
+    </div>
+    <p id="delta"></p>
+  </section>
+
+  <div class="tools">
+    <input type="search" id="search" placeholder="Cari outlet, kode, atau alamat…" aria-label="Cari outlet">
+    <div class="seg" role="group" aria-label="Saring pilihan">
+      <button class="btn" data-filter="all" aria-pressed="true">Semua</button>
+      <button class="btn" data-filter="mid" aria-pressed="false">Mid</button>
+      <button class="btn" data-filter="max" aria-pressed="false">Max</button>
+    </div>
+    <button class="btn" id="btnAllMid">Semua ke Mid</button>
+    <button class="btn" id="btnAllMax">Semua ke Max</button>
+    <button class="btn" id="btnExport">Unduh CSV</button>
+    <button class="btn" id="btnCopy">Salin ringkasan</button>
+  </div>
+
+  <div class="list" id="list"></div>
+
+  <footer>
+    <p id="srcNote"></p>
+    <p>
+      Rumus mengikuti sheet: <span class="num">target/minggu = dasar × (1 + %UP)</span>,
+      lalu dikali 4 untuk sebulan dan 13 untuk satu triwulan. Semua angka dalam karton.
+    </p>
+    <p>Pilihan tersimpan otomatis di perangkat ini. Buka link yang sama untuk melanjutkan.</p>
+  </footer>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script type="application/json" id="dataset">__DATA__</script>
+<script>
+(function () {
+  "use strict";
+
+  var STORE_KEY = "ikatTargetToko.v1";
+  var fmtNum = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 0 });
+  var BLOCKS = JSON.parse(document.getElementById("dataset").textContent);
+
+  var state = {
+    version: BLOCKS.length ? BLOCKS[BLOCKS.length - 1].key : "",
+    sales: "all",
+    period: "",
+    filter: "all",
+    q: "",
+    picks: {}
+  };
+
+  function el(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+  function fmt(n) { return fmtNum.format(Math.round(n || 0)); }
+
+  /* ---------------- model ---------------- */
+
+  function block() {
+    for (var i = 0; i < BLOCKS.length; i++) {
+      if (BLOCKS[i].key === state.version) return BLOCKS[i];
+    }
+    return BLOCKS[BLOCKS.length - 1];
+  }
+
+  function period() {
+    var ps = block().periods;
+    for (var i = 0; i < ps.length; i++) {
+      if (ps[i].key === state.period) return ps[i];
+    }
+    return ps[ps.length - 1];
+  }
+
+  // Nilai tengah dan tertinggi dari ketiga rata-rata per minggu.
+  function levels(row) {
+    var sorted = row.basis.map(function (b) { return b.value; }).sort(function (a, b) { return a - b; });
+    return { mid: sorted[1], max: sorted[2] };
+  }
+
+  function keyOf(row) { return state.version + "|" + row.kode + "|" + row.outlet; }
+
+  function pickOf(row) { return state.picks[keyOf(row)] === "mid" ? "mid" : "max"; }
+
+  function weekTarget(row, level) {
+    return Math.round(levels(row)[level] * (1 + (row.up || 0) / 100));
+  }
+
+  function targetOf(row, level) { return Math.round(weekTarget(row, level) * period().weeks); }
+
+  function scopeRows() {
+    return block().rows.filter(function (r) {
+      return state.sales === "all" || r.sales === state.sales;
+    });
+  }
+
+  function visibleRows() {
+    var q = state.q.trim().toLowerCase();
+    return scopeRows().filter(function (r) {
+      if (state.filter !== "all" && pickOf(r) !== state.filter) return false;
+      if (!q) return true;
+      return (r.outlet + " " + r.kode + " " + r.alamat + " " + r.rayon).toLowerCase().indexOf(q) > -1;
+    });
+  }
+
+  /* ---------------- persistence ---------------- */
+
+  function save() {
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify({
+        picks: state.picks, version: state.version, sales: state.sales, period: state.period
+      }));
+    } catch (e) { /* penyimpanan diblokir — pilihan tetap jalan selama halaman terbuka */ }
+  }
+
+  function load() {
+    var raw;
+    try { raw = localStorage.getItem(STORE_KEY); } catch (e) { return; }
+    if (!raw) return;
+    try {
+      var d = JSON.parse(raw);
+      if (!d || typeof d !== "object") return;
+      if (d.picks) state.picks = d.picks;
+      if (d.version && BLOCKS.some(function (b) { return b.key === d.version; })) state.version = d.version;
+      if (d.sales) state.sales = d.sales;
+      if (d.period) state.period = d.period;
+    } catch (e) { /* data lama rusak — pakai bawaan */ }
+  }
+
+  /* ---------------- pickers ---------------- */
+
+  function option(value, label) {
+    var o = document.createElement("option");
+    o.value = value;
+    o.textContent = label;
+    return o;
+  }
+
+  function fillVersions() {
+    var sel = el("selVersion");
+    sel.innerHTML = "";
+    BLOCKS.forEach(function (b) { sel.appendChild(option(b.key, b.label)); });
+    sel.value = block().key;
+    state.version = sel.value;
+  }
+
+  function fillSales() {
+    var names = [];
+    block().rows.forEach(function (r) {
+      if (names.indexOf(r.sales) < 0) names.push(r.sales);
+    });
+    names.sort();
+    var sel = el("selSales");
+    sel.innerHTML = "";
+    sel.appendChild(option("all", "Semua sales (" + block().rows.length + " outlet)"));
+    names.forEach(function (n) {
+      var count = block().rows.filter(function (r) { return r.sales === n; }).length;
+      sel.appendChild(option(n, n + " (" + count + ")"));
+    });
+    if (names.indexOf(state.sales) < 0) state.sales = "all";
+    sel.value = state.sales;
+  }
+
+  function fillPeriods() {
+    var ps = block().periods;
+    var sel = el("selPeriod");
+    sel.innerHTML = "";
+    ps.forEach(function (p) { sel.appendChild(option(p.key, p.label)); });
+    if (!ps.some(function (p) { return p.key === state.period; })) state.period = ps[ps.length - 1].key;
+    sel.value = state.period;
+  }
+
+  /* ---------------- render ---------------- */
+
+  function renderSummary() {
+    var rows = scopeRows();
+    var nMid = 0, nMax = 0, sumMid = 0, sumMax = 0, allMax = 0;
+    rows.forEach(function (r) {
+      var amt = targetOf(r, pickOf(r));
+      allMax += targetOf(r, "max");
+      if (pickOf(r) === "mid") { nMid++; sumMid += amt; } else { nMax++; sumMax += amt; }
+    });
+    var total = sumMid + sumMax;
+
+    el("totalLabel").textContent = "Total target " + period().label.toLowerCase();
+    el("totalNum").innerHTML = fmt(total) + '<span class="unit">karton</span>';
+    el("chips").innerHTML =
+      '<span class="chip"><b>' + rows.length + '</b> outlet</span>' +
+      '<span class="chip"><i class="dot m"></i>Mid <b>' + nMid + '</b></span>' +
+      '<span class="chip"><i class="dot x"></i>Max <b>' + nMax + '</b></span>';
+    el("barMid").style.width = (total > 0 ? (sumMid / total) * 100 : 0) + "%";
+    el("barMax").style.width = (total > 0 ? (sumMax / total) * 100 : 0) + "%";
+
+    var gap = allMax - total;
+    var d = el("delta");
+    if (gap > 0) {
+      d.className = "";
+      d.innerHTML = "Lebih ringan <span class=\"num\">" + fmt(gap) + " karton</span> (" +
+        (allMax ? (gap / allMax * 100).toFixed(1).replace(".", ",") : "0") +
+        "%) dibanding kalau semua diambil Max — angka yang dipakai sheet sekarang.";
+    } else {
+      d.className = "flat";
+      d.innerHTML = "Semua outlet masih di Max, sama persis dengan sheet. Pilih <span class=\"num\">Mid</span> pada outlet yang tidak realistis.";
+    }
+  }
+
+  function renderList() {
+    var rows = visibleRows();
+    var list = el("list");
+    if (!rows.length) {
+      list.innerHTML = '<div class="empty">Tidak ada outlet yang cocok dengan pilihan ini.</div>';
+      return;
+    }
+    var zonaLabel = block().zonaLabel;
+    var per = period();
+
+    list.innerHTML = rows.map(function (r) {
+      var pick = pickOf(r);
+      var lv = levels(r);
+      var same = lv.mid === lv.max;
+
+      var meta = [];
+      if (r.kode) meta.push('<span class="num">' + esc(r.kode) + "</span>");
+      if (r.rayon) meta.push("<span>" + esc(r.rayon) + "</span>");
+      if (r.zona) meta.push("<span>" + esc(zonaLabel) + " " + esc(r.zona) + "</span>");
+      meta.push("<span>UP " + fmt(r.up) + "%</span>");
+      if (state.sales === "all") meta.push("<span>" + esc(r.sales) + "</span>");
+
+      // Tandai mana yang tengah dan mana yang tertinggi di antara ketiga rata-rata.
+      var maxSeen = false, midSeen = false;
+      var basis = r.basis.map(function (b) {
+        var rank = "";
+        if (!maxSeen && b.value === lv.max) { rank = "max"; maxSeen = true; }
+        else if (!midSeen && b.value === lv.mid) { rank = "mid"; midSeen = true; }
+        return '<div class="bas" data-rank="' + rank + '">' +
+          '<span class="bas-lab">' + esc(b.label) + "</span>" +
+          '<span class="bas-val">' + fmt(b.value) + "</span></div>";
+      }).join("");
+
+      function levelBtn(level, tag) {
+        var week = weekTarget(r, level);
+        return '<button class="lvl" type="button" data-lvl="' + level + '"' +
+          ' aria-pressed="' + (pick === level) + '"' + (same ? ' data-same="1"' : "") + ">" +
+          '<span class="lvl-tag">' + tag + "</span>" +
+          '<span class="lvl-num">' + fmt(targetOf(r, level)) + "</span>" +
+          '<span class="lvl-sub">' + (per.weeks > 1 ? fmt(week) + " / minggu" : "dasar " + fmt(levels(r)[level])) + "</span>" +
+          "</button>";
+      }
+
+      return '<article class="row" data-key="' + esc(keyOf(r)) + '" data-pick="' + pick + '">' +
+        '<div class="row-id">' +
+          '<div class="row-name">' + esc(r.outlet) + "</div>" +
+          (meta.length ? '<div class="row-meta">' + meta.join("") + "</div>" : "") +
+          (r.alamat ? '<div class="row-addr">' + esc(r.alamat) + "</div>" : "") +
+          '<div class="basis" title="Rata-rata karton per minggu">' + basis + "</div>" +
+        "</div>" +
+        '<div class="levels" role="group" aria-label="Dasar target untuk ' + esc(r.outlet) + '">' +
+          levelBtn("mid", same ? "Mid = Max" : "Mid") + levelBtn("max", "Max") +
+        "</div></article>";
+    }).join("");
+  }
+
+  function render() {
+    fillSales();
+    fillPeriods();
+    el("srcNote").textContent = "Sumber: sheet “Ikat Target Toko” · " + block().label +
+      " · " + block().rows.length + " outlet.";
+    renderSummary();
+    renderList();
+  }
+
+  /* ---------------- export ---------------- */
+
+  function csvCell(v) {
+    var s = String(v == null ? "" : v);
+    return /[",\n;]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+
+  function exportCsv() {
+    var rows = scopeRows();
+    if (!rows.length) { toast("Tidak ada outlet untuk diunduh."); return; }
+    var per = period();
+    var basisLabels = block().rows[0].basis.map(function (b) { return b.label; });
+    var head = ["Salesman", "Rayon", "No Outlet", "Nama Outlet", "Alamat", block().zonaLabel, "% UP"]
+      .concat(basisLabels.map(function (l) { return "AVG/minggu " + l; }))
+      .concat(["Pilihan", "Dasar terpilih", "Target/minggu", "Target " + per.label,
+               "Target " + per.label + " kalau Max", "Selisih"]);
+    var lines = [head.join(",")];
+    rows.forEach(function (r) {
+      var pick = pickOf(r);
+      var mine = targetOf(r, pick);
+      var asMax = targetOf(r, "max");
+      lines.push([r.sales, r.rayon, r.kode, r.outlet, r.alamat, r.zona, r.up]
+        .concat(r.basis.map(function (b) { return Math.round(b.value); }))
+        .concat([pick === "mid" ? "Mid" : "Max", Math.round(levels(r)[pick]),
+                 weekTarget(r, pick), mine, asMax, mine - asMax])
+        .map(csvCell).join(","));
+    });
+    var total = rows.reduce(function (a, r) { return a + targetOf(r, pickOf(r)); }, 0);
+    var totalMax = rows.reduce(function (a, r) { return a + targetOf(r, "max"); }, 0);
+    lines.push(["", "", "", "TOTAL", "", "", "", "", "", "", "", "", "", total, totalMax, total - totalMax]
+      .map(csvCell).join(","));
+
+    var blob = new Blob(["﻿" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "ikat-target-" + block().key + "-" + per.key + ".csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    toast("CSV diunduh.");
+  }
+
+  function copySummary() {
+    var rows = scopeRows();
+    if (!rows.length) { toast("Tidak ada outlet untuk disalin."); return; }
+    var per = period();
+    var total = 0, totalMax = 0, nMid = 0;
+    var lines = ["IKAT TARGET TOKO — " + block().label,
+                 (state.sales === "all" ? "Semua sales" : state.sales) + " · target " + per.label, ""];
+    rows.forEach(function (r) {
+      var pick = pickOf(r);
+      total += targetOf(r, pick);
+      totalMax += targetOf(r, "max");
+      if (pick === "mid") nMid++;
+      lines.push("- " + r.outlet + " — " + (pick === "mid" ? "Mid" : "Max") + " " + fmt(targetOf(r, pick)) + " krt");
+    });
+    lines.push("", rows.length + " outlet · " + nMid + " Mid · " + (rows.length - nMid) + " Max");
+    lines.push("TOTAL: " + fmt(total) + " krt (semua Max: " + fmt(totalMax) + " krt)");
+    var text = lines.join("\n");
+
+    var done = function () { toast("Ringkasan disalin."); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, fallback);
+    } else { fallback(); }
+
+    function fallback() {
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); done(); }
+      catch (e) { toast("Gagal menyalin. Pakai tombol Unduh CSV."); }
+      document.body.removeChild(ta);
+    }
+  }
+
+  var toastTimer;
+  function toast(msg) {
+    var t = el("toast");
+    t.textContent = msg;
+    t.classList.add("on");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove("on"); }, 2200);
+  }
+
+  /* ---------------- events ---------------- */
+
+  el("list").addEventListener("click", function (e) {
+    var btn = e.target.closest(".lvl");
+    if (!btn) return;
+    var row = btn.closest(".row");
+    if (!row) return;
+    state.picks[row.getAttribute("data-key")] = btn.getAttribute("data-lvl");
+    save();
+    renderSummary();
+    renderList();
+  });
+
+  el("selVersion").addEventListener("change", function (e) {
+    state.version = e.target.value;
+    save();
+    render();
+  });
+  el("selSales").addEventListener("change", function (e) {
+    state.sales = e.target.value;
+    save();
+    renderSummary();
+    renderList();
+  });
+  el("selPeriod").addEventListener("change", function (e) {
+    state.period = e.target.value;
+    save();
+    renderSummary();
+    renderList();
+  });
+
+  el("search").addEventListener("input", function (e) {
+    state.q = e.target.value;
+    renderList();
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-filter]"), function (b) {
+    b.addEventListener("click", function () {
+      state.filter = b.getAttribute("data-filter");
+      Array.prototype.forEach.call(document.querySelectorAll("[data-filter]"), function (o) {
+        o.setAttribute("aria-pressed", String(o === b));
+      });
+      renderList();
+    });
+  });
+
+  function setAll(level) {
+    var rows = visibleRows();
+    rows.forEach(function (r) { state.picks[keyOf(r)] = level; });
+    save();
+    renderSummary();
+    renderList();
+    toast(rows.length + " outlet diset ke " + (level === "mid" ? "Mid" : "Max") + ".");
+  }
+  el("btnAllMid").addEventListener("click", function () { setAll("mid"); });
+  el("btnAllMax").addEventListener("click", function () { setAll("max"); });
+  el("btnExport").addEventListener("click", exportCsv);
+  el("btnCopy").addEventListener("click", copySummary);
+
+  /* ---------------- boot ---------------- */
+
+  load();
+  fillVersions();
+  render();
+})();
+</script>

@@ -1,0 +1,4 @@
+# Data outlet asli dan halaman hasil build tidak masuk git —
+# keduanya memuat nama toko, alamat, nama sales, dan angka penjualan.
+target-toko/build/sheet-export.txt
+target-toko/index.html
