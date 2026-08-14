@@ -23,6 +23,13 @@
     return item;
   });
 
+  // Sisi atas diberi ruang lebih supaya popup tidak tertutup pesan status.
+  var POPUP_OPSI = {
+    closeButton: true,
+    autoPanPaddingTopLeft: [24, 78],
+    autoPanPaddingBottomRight: [24, 28]
+  };
+
   var $ = function (id) { return document.getElementById(id); };
   var listEl = $("list");
   var moreEl = $("listMore");
@@ -87,7 +94,9 @@
       fillColor: token(STATUS_VAR[item.status]),
       fillOpacity: 1
     });
-    marker.bindPopup(popupHtml(item), { closeButton: true, autoPanPadding: [24, 24] });
+    // Isi popup dibuat saat dibuka, bukan saat marker dibuat, supaya jarak ke
+    // posisi pengguna selalu memakai angka terbaru.
+    marker.bindPopup(function () { return popupHtml(item); }, POPUP_OPSI);
     marker.on("click", function () { setActive(item.i, false); });
     return marker;
   });
@@ -98,6 +107,149 @@
       .replace(/"/g, "&quot;");
   }
 
+  /* ---------- lokasi pengguna ---------- */
+
+  var lokasi = null;          // { lat, lng, akurasi }
+  var titikSaya = null;       // marker posisi
+  var lingkarSaya = null;     // lingkaran akurasi
+  var pantauan = null;        // id watchPosition
+  var pesanWaktu;
+
+  function pesan(teks, lama) {
+    var el = $("toast");
+    el.textContent = teks;
+    el.hidden = false;
+    clearTimeout(pesanWaktu);
+    if (lama !== 0) {
+      pesanWaktu = setTimeout(function () { el.hidden = true; }, lama || 5000);
+    }
+  }
+
+  // Haversine — cukup akurat untuk jarak sedekat ini, dan tidak perlu pustaka.
+  function jarakMeter(aLat, aLng, bLat, bLng) {
+    var R = 6371000;
+    var d = Math.PI / 180;
+    var dLat = (bLat - aLat) * d;
+    var dLng = (bLng - aLng) * d;
+    var s = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(aLat * d) * Math.cos(bLat * d) *
+            Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return 2 * R * Math.atan2(Math.sqrt(s), Math.sqrt(1 - s));
+  }
+
+  function formatJarak(m) {
+    if (m < 1000) { return Math.round(m / 10) * 10 + " m"; }
+    return (m / 1000).toFixed(m < 10000 ? 1 : 0).replace(".", ",") + " km";
+  }
+
+  function hitungJarak() {
+    items.forEach(function (item) {
+      item.jarak = lokasi ? jarakMeter(lokasi.lat, lokasi.lng, item.lat, item.lng) : null;
+    });
+  }
+
+  function gambarPosisi() {
+    var titik = [lokasi.lat, lokasi.lng];
+    if (!titikSaya) {
+      lingkarSaya = L.circle(titik, {
+        radius: lokasi.akurasi, interactive: false,
+        color: token("--accent"), weight: 1, fillColor: token("--accent"), fillOpacity: .12
+      }).addTo(map);
+      titikSaya = L.circleMarker(titik, {
+        radius: 7, color: "#fff", weight: 3,
+        fillColor: token("--accent"), fillOpacity: 1
+      }).addTo(map).bindPopup("Posisi Anda sekarang");
+      titikSaya.bringToFront();
+    } else {
+      titikSaya.setLatLng(titik);
+      lingkarSaya.setLatLng(titik).setRadius(lokasi.akurasi);
+    }
+  }
+
+  function posisiMasuk(pos) {
+    var pertama = !lokasi;
+    lokasi = {
+      lat: pos.coords.latitude,
+      lng: pos.coords.longitude,
+      akurasi: pos.coords.accuracy || 0
+    };
+    hitungJarak();
+    gambarPosisi();
+    applyFilters();
+
+    if (pertama) {
+      map.setView([lokasi.lat, lokasi.lng], 15);
+      var dekat = items.slice().sort(function (a, b) { return a.jarak - b.jarak; })[0];
+      pesan("Lokasi ditemukan. Freezer terdekat: " + (dekat.toko || dekat.kode) +
+            " — " + formatJarak(dekat.jarak) + ".");
+    }
+    document.body.classList.remove("cari-lokasi");
+    document.body.classList.add("pakai-lokasi");
+  }
+
+  function posisiGagal(err) {
+    hentikanLokasi();
+    if (err.code === 1) {
+      pesan("Izin lokasi ditolak. Aktifkan izin lokasi untuk situs ini lewat ikon gembok di address bar, lalu coba lagi.", 9000);
+    } else if (err.code === 3) {
+      pesan("Terlalu lama mencari sinyal GPS. Coba lagi di tempat yang lebih terbuka.", 8000);
+    } else {
+      pesan("Lokasi tidak bisa diambil. Pastikan GPS perangkat menyala.", 8000);
+    }
+  }
+
+  function mulaiLokasi() {
+    if (!navigator.geolocation) {
+      pesan("Perangkat atau browser ini tidak mendukung deteksi lokasi.", 8000);
+      return;
+    }
+    // GPS hanya diizinkan di halaman https (atau localhost). Berkas yang dibuka
+    // lewat dobel-klik memakai alamat file:// sehingga selalu ditolak browser.
+    if (!window.isSecureContext) {
+      pesan("Deteksi lokasi hanya jalan di alamat https. Buka lewat link online, bukan berkas yang tersimpan di perangkat.", 10000);
+      return;
+    }
+    pesan("Mencari lokasi Anda…", 0);
+    document.body.classList.add("cari-lokasi");
+    pantauan = navigator.geolocation.watchPosition(posisiMasuk, posisiGagal, {
+      enableHighAccuracy: true, timeout: 20000, maximumAge: 10000
+    });
+  }
+
+  function hentikanLokasi() {
+    if (pantauan !== null) { navigator.geolocation.clearWatch(pantauan); }
+    pantauan = null;
+    lokasi = null;
+    document.body.classList.remove("cari-lokasi", "pakai-lokasi");
+    if (titikSaya) { map.removeLayer(titikSaya); map.removeLayer(lingkarSaya); }
+    titikSaya = lingkarSaya = null;
+    hitungJarak();
+    applyFilters();
+  }
+
+  var TombolLokasi = L.Control.extend({
+    options: { position: "topleft" },
+    onAdd: function () {
+      var kotak = L.DomUtil.create("div", "leaflet-bar tombol-lokasi");
+      var a = L.DomUtil.create("a", "", kotak);
+      a.href = "#";
+      a.title = "Tampilkan lokasi saya";
+      a.setAttribute("role", "button");
+      a.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+        '<circle cx="12" cy="12" r="4"/>' +
+        '<path d="M12 1v4M12 19v4M1 12h4M19 12h4"/>' +
+        '<circle cx="12" cy="12" r="8" class="cincin"/></svg>';
+      L.DomEvent.on(a, "click", function (e) {
+        L.DomEvent.stop(e);
+        if (pantauan === null) { mulaiLokasi(); } else { hentikanLokasi(); pesan("Lokasi dimatikan."); }
+      });
+      L.DomEvent.disableClickPropagation(kotak);
+      return kotak;
+    }
+  });
+
+  map.addControl(new TombolLokasi());
+
   function row(label, value, mono) {
     if (!value) { return ""; }
     return "<dt>" + esc(label) + "</dt>" +
@@ -105,14 +257,22 @@
   }
 
   function popupHtml(item) {
-    var gmaps = "https://www.google.com/maps/search/?api=1&query=" + item.lat + "," + item.lng;
     var telp = String(item.telp || "").replace(/[^\d+]/g, "");
+    // Kalau posisi pengguna diketahui, tombolnya jadi rute dari titik itu.
+    var tujuan = item.lat + "," + item.lng;
+    var petaUrl = lokasi
+      ? "https://www.google.com/maps/dir/?api=1&origin=" + lokasi.lat + "," + lokasi.lng +
+        "&destination=" + tujuan + "&travelmode=driving"
+      : "https://www.google.com/maps/search/?api=1&query=" + tujuan;
     return '' +
       '<div class="pop-toko">' + esc(item.toko || "(nama toko kosong)") + '</div>' +
       '<div class="pop-kode">' + esc(item.kode || "—") +
         '<span class="badge badge-' + item.status + '">' +
         esc(STATUS_LABEL[item.status]) + '</span></div>' +
       '<dl class="pop-rows">' +
+        (item.jarak != null
+          ? '<dt>Jarak</dt><dd class="mono jarak-pop">' + formatJarak(item.jarak) + " dari Anda</dd>"
+          : "") +
         row("Inspector", item.inspector) +
         row("Inspeksi", item.waktu, true) +
         row("PIC toko", item.pic) +
@@ -127,7 +287,8 @@
         row("Koordinat", item.lat + ", " + item.lng, true) +
       '</dl>' +
       '<div class="pop-actions">' +
-        '<a class="btn btn-primary" href="' + esc(gmaps) + '" target="_blank" rel="noopener">Buka Maps</a>' +
+        '<a class="btn btn-primary" href="' + esc(petaUrl) + '" target="_blank" rel="noopener">' +
+          (lokasi ? "Rute ke sini" : "Buka Maps") + '</a>' +
         (telp ? '<a class="btn" href="tel:' + esc(telp) + '">Telepon</a>' : "") +
       '</div>';
   }
@@ -171,6 +332,12 @@
       return true;
     });
 
+    // Begitu posisi diketahui, daftar diurutkan dari yang paling dekat supaya
+    // kartu teratas selalu freezer terdekat.
+    if (lokasi) {
+      state.rows = state.rows.slice().sort(function (a, b) { return a.jarak - b.jarak; });
+    }
+
     renderList(true);
     renderMarkers();
   }
@@ -182,7 +349,8 @@
       listEl.innerHTML = "";
       listEl.scrollTop = 0;
       state.shown = 0;
-      $("resultCount").innerHTML = "<b>" + angka(state.rows.length) + "</b> unit";
+      $("resultCount").innerHTML = "<b>" + angka(state.rows.length) + "</b> unit" +
+        (lokasi ? ' <span class="urut">· terdekat dulu</span>' : "");
     }
 
     if (!state.rows.length) {
@@ -201,7 +369,11 @@
       li.dataset.status = item.status;
       li.tabIndex = 0;
       li.innerHTML =
-        '<div class="card-toko">' + esc(item.toko || "(nama toko kosong)") + '</div>' +
+        '<div class="card-toko">' + esc(item.toko || "(nama toko kosong)") +
+          (item.jarak != null
+            ? '<span class="jarak">' + formatJarak(item.jarak) + "</span>"
+            : "") +
+        '</div>' +
         '<div class="card-meta">' +
           '<span class="who">' + esc(item.inspector || "—") + '</span>' +
           '<span class="mono">' + esc(item.waktu || "—") + '</span>' +
@@ -268,7 +440,7 @@
       // popup dibuka langsung di peta (marker circle tidak punya _icon, jadi
       // zoomToShowLayer milik markercluster tidak bisa dipakai di sini).
       map.setView([item.lat, item.lng], Math.max(map.getZoom(), 17), { animate: false });
-      L.popup({ autoPanPadding: [24, 24] })
+      L.popup(POPUP_OPSI)
         .setLatLng([item.lat, item.lng])
         .setContent(popupHtml(item))
         .openOn(map);
@@ -338,7 +510,7 @@
     return '<span><i class="dot dot-' + key + '"></i>' + STATUS_LABEL[key] +
            '<i class="n">' + angka(counts[key]) + "</i></span>";
   }).join("") + (window.FREEZER_BASEMAP
-    ? '<small class="note">Peta dasar hanya garis pantai. Untuk detail jalan, pakai tombol Buka Maps di kotak informasi.</small>'
+    ? '<small class="note">Peta dasar hanya garis pantai. Untuk detail jalan dan rute, pakai tombol Google Maps di kotak informasi tiap unit.</small>'
     : "");
 
   /* ---------- mulai ---------- */

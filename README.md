@@ -40,10 +40,20 @@ Untuk online, folder ini bisa langsung di-hosting di GitHub Pages / Netlify apa 
   sekaligus (semua harus cocok).
 - **Filter** — inspector, status, model freezer, dan status distribusi.
   Peta ikut menyesuaikan ke area hasil filter.
+- **Lokasi saya** — tombol bidik di bawah tombol zoom menyalakan GPS. Posisi
+  Anda muncul sebagai titik dengan lingkaran akurasi, tiap kartu menampilkan
+  jaraknya, dan daftar otomatis diurutkan dari yang terdekat — jadi kartu
+  teratas selalu freezer paling dekat. Posisi ikut diperbarui selama berpindah.
 - **Detail** — klik titik di peta untuk melihat data lengkap unit, tombol
-  **Buka Maps** (Google Maps) dan **Telepon** untuk menghubungi PIC toko.
+  **Telepon** untuk menghubungi PIC toko, dan tombol Google Maps yang berubah
+  jadi **Rute ke sini** (petunjuk arah dari posisi Anda) begitu GPS menyala.
 
 Di layar kecil, daftar dan peta bergantian lewat tab di bagian bawah.
+
+> **Catatan GPS.** Browser hanya mengizinkan deteksi lokasi di halaman `https`
+> (atau `localhost`). Berkas yang dibuka lewat dobel-klik memakai alamat
+> `file://`, sehingga tombol lokasi akan menolak dan menampilkan keterangannya.
+> Untuk memakai fitur ini, buka lewat link online.
 
 ## Struktur folder
 
