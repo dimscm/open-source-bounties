@@ -17,11 +17,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  # Job ini sengaja tidak memakai "environment: github-pages". Selama Pages
+  # belum aktif, environment tersebut belum mengizinkan branch apa pun, jadi
+  # job yang memakainya akan ditolak sebelum sempat menyalakan Pages.
+  siapkan:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -34,5 +34,12 @@ jobs:
         with:
           path: .
 
+  deploy:
+    needs: siapkan
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - id: deployment
         uses: actions/deploy-pages@v4
