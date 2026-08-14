@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Peta Freezer — Toko &amp; Inspector</title>
+<meta name="description" content="Daftar toko, inspector, dan lokasi unit freezer terpasang.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🧊</text></svg>">
+<link rel="stylesheet" href="assets/vendor/leaflet.css">
+<link rel="stylesheet" href="assets/vendor/MarkerCluster.css">
+<link rel="stylesheet" href="assets/vendor/MarkerCluster.Default.css">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">🧊</span>
+    <div>
+      <h1>Peta Freezer</h1>
+      <p class="brand-sub">Toko · Inspector · Lokasi</p>
+    </div>
+  </div>
+
+  <div class="stats" id="stats">
+    <div class="stat"><span class="stat-num" id="statUnit">–</span><span class="stat-lbl">Unit</span></div>
+    <div class="stat"><span class="stat-num" id="statToko">–</span><span class="stat-lbl">Toko</span></div>
+    <div class="stat"><span class="stat-num" id="statInspector">–</span><span class="stat-lbl">Inspector</span></div>
+  </div>
+</header>
+
+<main class="layout">
+  <aside class="panel" id="panel">
+    <div class="filters">
+      <div class="field field-search">
+        <input type="search" id="q" placeholder="Cari toko, kode, alamat, serial…" autocomplete="off" aria-label="Cari">
+      </div>
+      <div class="field-row">
+        <label class="field">
+          <span>Inspector</span>
+          <select id="fInspector"><option value="">Semua inspector</option></select>
+        </label>
+        <label class="field">
+          <span>Status</span>
+          <select id="fStatus"><option value="">Semua status</option></select>
+        </label>
+      </div>
+      <div class="field-row">
+        <label class="field">
+          <span>Model</span>
+          <select id="fModel"><option value="">Semua model</option></select>
+        </label>
+        <label class="field">
+          <span>Distribusi</span>
+          <select id="fDistribusi"><option value="">Semua</option></select>
+        </label>
+      </div>
+      <div class="filter-foot">
+        <span id="resultCount">–</span>
+        <button type="button" id="reset" class="linkbtn">Reset filter</button>
+      </div>
+    </div>
+
+    <ul class="list" id="list" tabindex="0"></ul>
+    <div class="list-more" id="listMore" hidden></div>
+  </aside>
+
+  <section class="mapwrap">
+    <div id="map" role="application" aria-label="Peta lokasi freezer"></div>
+    <div class="legend" id="legend"></div>
+  </section>
+</main>
+
+<nav class="mobile-tabs" aria-label="Tampilan">
+  <button type="button" data-view="list" class="active">Daftar</button>
+  <button type="button" data-view="map">Peta</button>
+</nav>
+
+<script src="assets/vendor/leaflet.js"></script>
+<script src="assets/vendor/leaflet.markercluster.js"></script>
+<script src="data/freezers.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,475 @@
+:root {
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --border: #dfe4ea;
+  --text: #14202b;
+  --muted: #67757f;
+  --accent: #1273b8;
+  --accent-soft: #e6f1f9;
+  --blue: #2b7de0;
+  --yellow: #d99b06;
+  --red: #d64545;
+  --shadow: 0 1px 2px rgba(16, 32, 45, .06), 0 6px 18px rgba(16, 32, 45, .07);
+  --topbar-h: 58px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ---------- topbar ---------- */
+
+.topbar {
+  height: var(--topbar-h);
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  z-index: 500;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.brand-mark {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -.01em;
+  white-space: nowrap;
+}
+
+.brand-sub {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.stats {
+  display: flex;
+  gap: 8px;
+}
+
+.stat {
+  min-width: 68px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  text-align: center;
+}
+
+.stat-num {
+  display: block;
+  font-size: 15px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.stat-lbl {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted);
+}
+
+/* ---------- layout ---------- */
+
+.layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 380px 1fr;
+}
+
+.panel {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+
+.mapwrap {
+  position: relative;
+  min-height: 0;
+}
+
+#map {
+  position: absolute;
+  inset: 0;
+  background: #e8edf1;
+}
+
+/* ---------- filters ---------- */
+
+.filters {
+  flex: none;
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  gap: 8px;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.field {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.field > span {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--muted);
+}
+
+input[type="search"], select {
+  width: 100%;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  appearance: none;
+}
+
+select {
+  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath fill='%2367757f' d='M1 1.5 6 6.5l5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  background-size: 10px;
+  padding-right: 26px;
+  text-overflow: ellipsis;
+}
+
+input[type="search"]::placeholder { color: #9aa7b0; }
+
+input:focus-visible, select:focus-visible, .card:focus-visible, .linkbtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.filter-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.linkbtn {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 12px;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.linkbtn:hover { text-decoration: underline; }
+
+/* ---------- list ---------- */
+
+.list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0;
+  padding: 8px;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+  align-content: start;
+}
+
+.card {
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--blue);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+  display: grid;
+  gap: 3px;
+}
+
+.card:hover { background: var(--surface-2); }
+
+.card.is-active {
+  border-color: var(--accent);
+  border-left-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.card[data-status="YELLOW"] { border-left-color: var(--yellow); }
+.card[data-status="RED"]    { border-left-color: var(--red); }
+
+.card-toko {
+  font-weight: 600;
+  font-size: 13.5px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.card-meta b {
+  font-weight: 600;
+  color: #3d4c57;
+}
+
+.empty, .list-more {
+  padding: 24px 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.list-more { padding: 10px; }
+
+/* ---------- legend ---------- */
+
+.legend {
+  position: absolute;
+  left: 10px;
+  bottom: 18px;
+  z-index: 400;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, .94);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  font-size: 11.5px;
+  display: grid;
+  gap: 4px;
+}
+
+.legend b {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.legend span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .18);
+}
+
+.dot-BLUE   { background: var(--blue); }
+.dot-YELLOW { background: var(--yellow); }
+.dot-RED    { background: var(--red); }
+
+/* ---------- cluster ----------
+   Warna bawaan markercluster (hijau/kuning/oranye) dibuat netral supaya tidak
+   tertukar dengan arti warna status pada legenda. */
+
+.marker-cluster,
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
+  background: rgba(18, 115, 184, .22);
+}
+
+.marker-cluster div,
+.marker-cluster-small div,
+.marker-cluster-medium div,
+.marker-cluster-large div {
+  background: var(--accent);
+  color: #fff;
+  font: 600 12px/30px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+.marker-cluster span { line-height: 30px; }
+
+/* ---------- popup ---------- */
+
+.leaflet-popup-content {
+  margin: 12px 14px;
+  width: 268px !important;
+  font-size: 13px;
+}
+
+.pop-toko {
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.35;
+  margin-bottom: 2px;
+  overflow-wrap: anywhere;
+}
+
+.pop-kode {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.pop-rows {
+  display: grid;
+  grid-template-columns: 78px 1fr;
+  gap: 3px 8px;
+  margin: 0 0 10px;
+  font-size: 12.5px;
+}
+
+.pop-rows dt {
+  color: var(--muted);
+  font-size: 11.5px;
+  padding-top: 1px;
+}
+
+.pop-rows dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.pop-actions {
+  display: flex;
+  gap: 6px;
+}
+
+/* .leaflet-container a { color: #0078A8 } bawaan Leaflet lebih spesifik
+   daripada .btn, jadi selectornya perlu disamakan tingkatnya. */
+.leaflet-container a.btn,
+.btn {
+  flex: 1;
+  display: block;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+}
+
+.btn:hover { background: #eef2f6; }
+
+.leaflet-container a.btn-primary,
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover { background: #0f6199; }
+
+.badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.badge-BLUE   { background: var(--blue); }
+.badge-YELLOW { background: var(--yellow); }
+.badge-RED    { background: var(--red); }
+
+/* ---------- mobile ---------- */
+
+.mobile-tabs { display: none; }
+
+@media (max-width: 800px) {
+  .layout { grid-template-columns: 1fr; }
+
+  .panel, .mapwrap { grid-area: 1 / 1; }
+
+  .panel { border-right: 0; }
+
+  body[data-view="map"] .panel,
+  body[data-view="list"] .mapwrap { display: none; }
+
+  .stats .stat:nth-child(3) { display: none; }
+
+  .mobile-tabs {
+    flex: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+  }
+
+  .mobile-tabs button {
+    padding: 11px;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  .mobile-tabs button.active {
+    color: var(--accent);
+    box-shadow: inset 0 -2px 0 var(--accent);
+  }
+
+  .legend { bottom: 10px; }
+}
+
+@media (max-width: 420px) {
+  .brand-sub { display: none; }
+  .stats .stat { min-width: 56px; padding: 3px 7px; }
+}
