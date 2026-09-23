@@ -19,12 +19,13 @@ sah, perubahan tidak bisa masuk walau seseorang menemukan link `?admin`.
 
 ### Masuk sebagai admin (sekali per perangkat)
 
-1. Buat token GitHub: **Settings → Developer settings → Personal access tokens →
-   Fine-grained tokens → Generate new token**.
+1. Buat token GitHub lewat <https://github.com/settings/personal-access-tokens/new>.
+   (Lewat menu: foto profil → **Settings akun**, bukan Settings repo → **Developer
+   settings** → **Personal access tokens** → **Fine-grained tokens** → **Generate new token**.)
    - *Repository access*: **Only select repositories** → `open-source-bounties`
    - *Permissions → Repository permissions → Contents*: **Read and write**
    - *Expiration*: sesuai kebutuhan (mis. 1 tahun) → **Generate token** → salin
-     token `github_pat_…`
+     token `github_pat_…` (hanya ditampilkan sekali)
 2. Buka link web dengan tambahan `?admin` di belakang, tempel token, **Masuk**.
 3. Token disimpan di browser perangkat itu saja. **Keluar admin** menghapusnya.
 
