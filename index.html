@@ -35,7 +35,8 @@
         <span class="databar-meta" id="dataMeta">–</span>
       </div>
       <div class="databar-aksi">
-        <button type="button" class="btn btn-kecil" data-aksi="unggah">Ganti data</button>
+        <button type="button" class="btn btn-kecil" data-aksi="unggah">Pakai file lain</button>
+        <button type="button" class="linkbtn" data-aksi="bersama" hidden>Data bersama</button>
         <button type="button" class="linkbtn" data-aksi="hapus" title="Hapus data yang tersimpan di browser ini">Hapus</button>
       </div>
     </div>
@@ -108,7 +109,7 @@
 
   <section class="kosong" id="kosong" hidden>
     <div class="kosong-kartu" id="dropzone">
-      <h2>Unggah data freezer</h2>
+      <h2 id="kosongJudul">Unggah data freezer</h2>
       <p>Pilih file Excel hasil ekspor aset freezer. Kolom wajib: <code>OUTLET</code> dan
         <code>LATITUDE AND LONGITUDE</code>; kolom lain dari template ikut ditampilkan kalau ada.</p>
       <div class="kosong-aksi">

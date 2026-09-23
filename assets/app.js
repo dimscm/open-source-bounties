@@ -539,13 +539,20 @@
     map.closePopup();
 
     document.body.classList.add("ada-data");
+    document.body.classList.remove("memuat");
     $("kosong").hidden = true;
     $("databar").hidden = false;
     $("legend").hidden = false;
-    $("dataNama").textContent = paket.nama;
-    $("dataNama").title = paket.nama;
-    $("dataMeta").textContent = angka(items.length) + " unit · diunggah " +
-      new Date(paket.waktu).toLocaleString("id-ID", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+    var lokal = paket.sumber !== "bersama";
+    var kapan = new Date(paket.waktu).toLocaleString("id-ID",
+      { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+    $("dataNama").textContent = lokal ? paket.nama : "Data bersama tim";
+    $("dataNama").title = lokal ? paket.nama : "Dari " + DATA_BERSAMA + " di repo";
+    $("dataMeta").textContent = angka(items.length) + " unit · " +
+      (lokal ? "unggahan Anda " : "diperbarui ") + kapan;
+    // Tombol kembali ke data bersama hanya relevan saat sedang melihat file sendiri.
+    $("databar").querySelector('[data-aksi="bersama"]').hidden = !(lokal && dataBersama);
+    $("databar").querySelector('[data-aksi="hapus"]').hidden = !lokal;
 
     renderRingkasan();
     renderLegend();
@@ -555,8 +562,10 @@
     setTimeout(function () { map.invalidateSize(); }, 30);
   }
 
-  function tampilKosong(status) {
+  function tampilKosong(status, memuat) {
     document.body.classList.remove("ada-data");
+    document.body.classList.toggle("memuat", !!memuat);
+    $("kosongJudul").textContent = memuat ? "Memuat data…" : "Unggah data freezer";
     $("kosong").hidden = false;
     $("databar").hidden = true;
     $("legend").hidden = true;
@@ -592,6 +601,7 @@
           return;
         }
         selesaiBaca();
+        paket.sumber = "lokal";
         pasangData(paket);
 
         var ringkas = angka(paket.items.length) + " unit dimuat dari " + file.name + "." +
@@ -976,35 +986,89 @@
       : "");
   }
 
+  /* ---------- data bersama ---------- */
+
+  // File Excel yang ditaruh di repo. Siapa pun yang membuka link langsung
+  // melihat data ini tanpa perlu memilih file. Untuk memperbarui, cukup ganti
+  // file ini di repo dengan nama yang sama.
+  var DATA_BERSAMA = "data/data-freezer.xlsx";
+  var dataBersama = null;
+
+  function muatBersama() {
+    if (location.protocol === "file:") { return Promise.resolve(null); }
+    // no-cache = tetap memakai salinan di perangkat, tapi selalu menanyakan
+    // server dulu apakah ada versi baru (murah: dijawab 304 kalau belum berubah).
+    return fetch(DATA_BERSAMA, { cache: "no-cache" }).then(function (res) {
+      if (!res.ok) { return null; }
+      var diubah = Date.parse(res.headers.get("Last-Modified") || "") || Date.now();
+      return res.arrayBuffer().then(function (buf) {
+        var paket = bacaWorkbook(new Uint8Array(buf), "data-freezer.xlsx");
+        paket.waktu = diubah;
+        paket.sumber = "bersama";
+        return paket;
+      });
+    }).then(null, function () { return null; });
+  }
+
+  function muatLokal() {
+    return muatData().then(function (paket) {
+      return paket && paket.items && paket.items.length ? paket : null;
+    }, function () { return null; });
+  }
+
   /* ---------- mulai ---------- */
 
   if (typeof XLSX === "undefined") {
     tampilKosong("Pembaca Excel gagal dimuat. Muat ulang halaman ini.");
   } else {
-    tampilKosong("Memeriksa data tersimpan…");
-    muatData().then(function (paket) {
-      if (paket && paket.items && paket.items.length) {
-        pasangData(paket);
+    tampilKosong("", true);
+    Promise.all([muatBersama(), muatLokal()]).then(function (hasil) {
+      dataBersama = hasil[0];
+      var lokal = hasil[1];
+      // Yang paling baru yang ditampilkan: unggahan pribadi yang sudah basi
+      // tidak boleh menahan orang di data lama setelah data bersama diperbarui.
+      if (lokal && (!dataBersama || lokal.waktu > dataBersama.waktu)) {
+        pasangData(lokal);
+      } else if (dataBersama) {
+        pasangData(dataBersama);
+        if (lokal) {
+          pesan("Data bersama lebih baru daripada file yang pernah Anda unggah, jadi yang ditampilkan data bersama.", 8000);
+        }
       } else {
         tampilKosong();
       }
-    }, function () {
-      tampilKosong();
     });
   }
   renderList(true);
 
+  function kosongkanTampilan() {
+    if (lokasi) { hentikanLokasi(); }
+    items = []; markers = []; dataInfo = null;
+    cluster.clearLayers();
+    map.closePopup();
+    state.rows = [];
+    renderList(true);
+  }
+
+  $("databar").addEventListener("click", function (e) {
+    if (!e.target.closest('[data-aksi="bersama"]') || !dataBersama) { return; }
+    hapusData().then(null, function () {}).then(function () {
+      pasangData(dataBersama);
+      pesan("Kembali memakai data bersama tim.");
+    });
+  });
+
   // Tombol hapus data tersimpan (untuk perangkat bersama).
   $("databar").addEventListener("click", function (e) {
     if (!e.target.closest('[data-aksi="hapus"]')) { return; }
-    if (!window.confirm("Hapus data freezer yang tersimpan di browser ini? Anda perlu mengunggah ulang untuk melihatnya lagi.")) { return; }
+    if (!window.confirm("Hapus file yang Anda unggah dari browser ini?")) { return; }
     hapusData().then(null, function () {}).then(function () {
-      if (lokasi) { hentikanLokasi(); }
-      items = []; markers = []; dataInfo = null;
-      cluster.clearLayers();
-      map.closePopup();
-      state.rows = [];
-      renderList(true);
+      if (dataBersama) {
+        pasangData(dataBersama);
+        pesan("File Anda dihapus dari browser ini. Sekarang menampilkan data bersama tim.");
+        return;
+      }
+      kosongkanTampilan();
       tampilKosong("Data dihapus dari browser ini.");
     });
   });

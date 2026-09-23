@@ -1019,3 +1019,11 @@ body:not(.ada-data) .mobile-tabs { display: none; }
   .toggle-filter::after { content: " ▾"; }
   body.filter-buka .toggle-filter::after { content: " ▴"; }
 }
+
+/* Selagi data bersama diambil: jangan tampilkan ajakan unggah dulu. */
+body.memuat .kosong-aksi,
+body.memuat .kosong-drop,
+body.memuat .kosong-catatan,
+body.memuat .kosong p:not(.kosong-status) { display: none; }
+
+.databar-aksi [hidden] { display: none; }

@@ -6,11 +6,34 @@ di peta** — termasuk mencari unit terdekat dari posisi Anda.
 
 ## Cara pakai
 
-1. Buka web → tekan **Pilih file Excel** (atau seret file `.xlsx` ke halaman).
-2. File dibaca **di browser Anda sendiri**, tidak dikirim ke server mana pun, lalu
-   disimpan di browser (IndexedDB) supaya tidak perlu diunggah ulang tiap membuka.
-3. Untuk memperbarui data, tekan **Ganti data** dan pilih file terbaru.
-   **Hapus** menghapus data dari browser itu (berguna di perangkat bersama).
+Buka link web — data bersama tim langsung tampil, tidak perlu memilih file.
+
+### Data bersama
+
+Data yang tampil untuk semua orang adalah file **`data/data-freezer.xlsx`** di repo
+(di branch yang dipakai GitHub Pages). Web membacanya langsung di browser setiap
+kali dibuka, jadi tidak ada langkah konversi.
+
+**Memperbarui data dari HP / laptop:**
+
+1. Ganti nama file Excel terbaru menjadi persis `data-freezer.xlsx`.
+2. Buka repo di browser → pilih branch yang dipakai Pages → masuk folder `data`.
+3. **Add file → Upload files** → pilih file tadi → **Commit changes**.
+   File lama otomatis tertimpa karena namanya sama.
+4. Tunggu 1–3 menit sampai GitHub Pages selesai memperbarui. Pengunjung yang
+   membuka ulang web langsung mendapat data baru.
+
+> **Data ini publik.** Siapa pun yang punya link — atau membuka repo — bisa melihat
+> seluruh isi file, termasuk nama PIC dan nomor telepon toko.
+
+### Memakai file sendiri
+
+Tombol **Pakai file lain** (atau seret file `.xlsx` ke halaman) membuka file lain
+tanpa mengubah data bersama. File itu dibaca di browser Anda saja dan disimpan di
+browser tersebut. Aturannya **yang paling baru yang tampil**: kalau data bersama di
+repo diperbarui setelah Anda mengunggah, web kembali ke data bersama dengan
+pemberitahuan. **Data bersama** mengembalikan tampilan kapan saja; **Hapus**
+membuang file Anda dari browser.
 
 Belum punya file-nya? Tekan **Unduh template** — isinya kolom yang sama persis
 dengan template tim, plus sheet *Petunjuk*.
@@ -58,11 +81,11 @@ di balik tombol **Filter & urutan** supaya daftar lebih lega.
 | Versi | Berkas | Peta dasar |
 | --- | --- | --- |
 | Lengkap | `index.html` | tile OpenStreetMap (ada jalan dan nama tempat) |
-| Satu berkas | `dist/peta-freezer.html` | garis pantai Natural Earth |
+| Satu berkas | `dist/peta-freezer.html` | garis pantai Natural Earth — tanpa data bersama, harus unggah file |
 
 Versi satu berkas menyisipkan seluruh CSS, JavaScript, dan font ke dalam satu HTML
 (±0,7 MB) — berguna untuk dikirim lewat chat atau dipasang di tempat yang memblokir
-host luar. Keduanya **tidak berisi data**; data selalu dari file yang diunggah.
+host luar. Versi ini tidak membawa data bersama, jadi selalu dimulai dari layar unggah.
 
 ## Struktur folder
 
@@ -74,6 +97,7 @@ assets/fonts.css           IBM Plex (OFL 1.1)
 assets/fonts/              berkas woff2
 assets/vendor/             Leaflet 1.9.4, Leaflet.markercluster 1.5.3,
                            SheetJS 0.18.5 (xlsx.mini) — semuanya offline
+data/data-freezer.xlsx     data bersama yang tampil untuk semua pengunjung
 data/basemap.js            garis pantai untuk versi satu berkas
 dist/peta-freezer.html     hasil rakitan satu berkas
 scripts/build_basemap.js   pembuat basemap.js dari Natural Earth
