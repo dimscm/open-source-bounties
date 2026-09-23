@@ -2542,6 +2542,23 @@ window.FREEZER_BASEMAP = {"type":"Feature","properties":{"source":"Natural Earth
       ]), "Petunjuk");
       var isi = XLSX.write(wb, { bookType: "xlsx", type: "array" });
       var blob = new Blob([isi], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+
+      // Di viewer artifact claude.ai, halaman tidak boleh mengunduh sendiri;
+      // file ditawarkan lewat kapabilitas "downloads" dan pengguna mengonfirmasi.
+      if (window.claude && typeof window.claude.use === "function") {
+        window.claude.use("downloads").then(function (downloads) {
+          if (!downloads) {
+            laporGagal("Template tidak bisa diunduh di halaman ini. Buka lewat link GitHub Pages untuk mengunduhnya.");
+            return;
+          }
+          downloads.save({ filename: "Template_Peta_Freezer.xlsx", data: blob }).then(null, function (e) {
+            if (e && e.code === "declined") { return; }
+            laporGagal("Template tidak jadi diunduh" + (e && e.code === "rate_limited" ? " — tunggu sebentar lalu coba lagi." : "."));
+          });
+        });
+        return;
+      }
+
       var url = URL.createObjectURL(blob);
       var a = document.createElement("a");
       a.href = url;
