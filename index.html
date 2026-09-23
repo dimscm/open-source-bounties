@@ -38,6 +38,7 @@
         <button type="button" class="btn btn-kecil" data-aksi="unggah">Pakai file lain</button>
         <button type="button" class="linkbtn" data-aksi="bersama" hidden>Data bersama</button>
         <button type="button" class="linkbtn" data-aksi="hapus" title="Hapus data yang tersimpan di browser ini">Hapus</button>
+        <button type="button" class="linkbtn hanya-admin" data-aksi="keluar">Keluar admin</button>
       </div>
     </div>
 
@@ -117,12 +118,29 @@
         <button type="button" class="btn btn-besar" id="unduhTemplate">Unduh template</button>
       </div>
       <p class="kosong-drop">atau seret file <code>.xlsx</code> ke sini</p>
-      <p class="kosong-catatan">File dibaca di perangkat ini saja — tidak dikirim ke server mana pun —
-        lalu disimpan di browser supaya tidak perlu diunggah ulang setiap kali dibuka.</p>
+      <p class="kosong-catatan" id="kosongCatatan"></p>
+      <button type="button" class="linkbtn hanya-admin kosong-keluar" data-aksi="keluar">Keluar admin</button>
       <p class="kosong-status" id="kosongStatus" role="status" aria-live="polite"></p>
     </div>
   </section>
 </main>
+
+<dialog class="dialog" id="adminDialog" aria-labelledby="adminJudul">
+  <form id="adminForm">
+    <h2 id="adminJudul">Masuk sebagai admin</h2>
+    <p>Admin bisa mengganti data untuk semua orang. Masukkan token GitHub yang punya
+      izin <b>Contents: Read and write</b> ke repo ini. Token disimpan di browser ini saja.</p>
+    <label class="field">
+      <span>Token GitHub</span>
+      <input type="password" id="adminToken" autocomplete="off" spellcheck="false" placeholder="github_pat_…" required>
+    </label>
+    <p class="dialog-status" id="adminStatus" role="status" aria-live="polite"></p>
+    <div class="dialog-aksi">
+      <button type="button" class="btn" id="adminBatal">Batal</button>
+      <button type="submit" class="btn btn-primary" id="adminMasuk">Masuk</button>
+    </div>
+  </form>
+</dialog>
 
 <input type="file" id="fileInput" accept=".xlsx,.xls,.xlsm,.csv" hidden>
 

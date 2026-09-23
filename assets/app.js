@@ -46,6 +46,13 @@
     "FIRST INSPECTION DATE", "FIRST OUTLET CODE", "FIRST OUTLET NAME", "LAST INSPECTOR",
     "LAST INSPECTED TIME", "INSPECTION DURATION", "STATUS ICON", "AVG L3M", "Omzet Sept"];
 
+  // Mode repo (GitHub Pages): semua orang melihat data bersama dari repo dan
+  // hanya admin yang bisa menggantinya. Mode lokal (versi satu-berkas/artifact):
+  // tidak ada data bersama, jadi setiap orang mengunggah file sendiri.
+  var MODE_REPO = !window.FREEZER_BASEMAP && location.protocol !== "file:";
+  var REPO = "dimscm/open-source-bounties";
+  var CABANG = "claude/web-toko-inspector-maps-1v2m0x";   // branch yang disajikan GitHub Pages
+
   var css = getComputedStyle(document.documentElement);
   function token(name) { return css.getPropertyValue(name).trim(); }
 
@@ -565,7 +572,11 @@
   function tampilKosong(status, memuat) {
     document.body.classList.remove("ada-data");
     document.body.classList.toggle("memuat", !!memuat);
-    $("kosongJudul").textContent = memuat ? "Memuat data…" : "Unggah data freezer";
+    $("kosongJudul").textContent = memuat ? "Memuat data…"
+      : bolehUnggah() ? "Unggah data freezer" : "Data belum tersedia";
+    if (!memuat && !bolehUnggah() && !status) {
+      status = "Admin belum mengunggah data freezer. Coba buka lagi nanti.";
+    }
     $("kosong").hidden = false;
     $("databar").hidden = true;
     $("legend").hidden = true;
@@ -576,7 +587,7 @@
   var sedangBaca = false;
 
   function prosesFile(file) {
-    if (!file || sedangBaca) { return; }
+    if (!file || sedangBaca || !bolehUnggah()) { return; }
     if (!/\.(xlsx|xlsm|xls|csv)$/i.test(file.name)) {
       laporGagal("File \"" + file.name + "\" bukan Excel. Pilih file .xlsx sesuai template.");
       return;
@@ -600,12 +611,31 @@
           laporGagal(e && e.message ? e.message : "File tidak bisa dibaca.");
           return;
         }
+        var ringkas = angka(paket.items.length) + " unit dari " + file.name + "." +
+          (paket.dilewati ? " " + angka(paket.dilewati) + " baris dilewati karena koordinatnya kosong atau tidak valid." : "");
+
+        if (MODE_REPO) {
+          // File baru dipakai hanya setelah GitHub menerimanya, supaya tampilan
+          // admin tidak berbeda dari yang dilihat orang lain.
+          var teksSimpan = "File valid (" + angka(paket.items.length) + " unit). Menyimpan untuk semua orang…";
+          if (items.length) { pesan(teksSimpan, 0); } else { $("kosongStatus").textContent = teksSimpan; }
+          kirimKeRepo(new Uint8Array(reader.result), file.name).then(function () {
+            selesaiBaca();
+            paket.sumber = "bersama";
+            paket.waktu = Date.now();
+            dataBersama = paket;
+            pasangData(paket);
+            pesan(ringkas + " Tersimpan — semua orang melihat data ini di link publik dalam 1–3 menit.", 12000);
+          }, function (e) {
+            selesaiBaca();
+            laporGagal("Data belum tersimpan: " + e.message);
+          });
+          return;
+        }
+
         selesaiBaca();
         paket.sumber = "lokal";
         pasangData(paket);
-
-        var ringkas = angka(paket.items.length) + " unit dimuat dari " + file.name + "." +
-          (paket.dilewati ? " " + angka(paket.dilewati) + " baris dilewati karena koordinatnya kosong atau tidak valid." : "");
         simpanData(paket).then(function () {
           pesan(ringkas, 7000);
         }, function () {
@@ -914,7 +944,7 @@
   // Seret-lepas file ke mana saja di halaman.
   ["dragenter", "dragover"].forEach(function (jenis) {
     document.addEventListener(jenis, function (e) {
-      if (e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types, "Files") !== -1) {
+      if (bolehUnggah() && e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types, "Files") !== -1) {
         e.preventDefault();
         document.body.classList.add("seret");
       }
@@ -929,6 +959,7 @@
   document.addEventListener("drop", function (e) {
     if (e.dataTransfer && e.dataTransfer.files.length) {
       e.preventDefault();
+      if (!bolehUnggah()) { return; }
       prosesFile(e.dataTransfer.files[0]);
     }
   });
@@ -986,6 +1017,162 @@
       : "");
   }
 
+  /* ---------- admin ---------- */
+
+  // Hak mengubah data = izin tulis GitHub ke repo ini. Token admin disimpan di
+  // browser admin saja; tanpa token yang sah, perubahan tidak bisa masuk ke repo
+  // meski seseorang menemukan link ?admin.
+  var KUNCI_TOKEN = "peta-freezer-admin-token";
+
+  function bacaToken() {
+    try { return localStorage.getItem(KUNCI_TOKEN) || ""; } catch (e) { return ""; }
+  }
+
+  function simpanToken(t) {
+    try {
+      if (t) { localStorage.setItem(KUNCI_TOKEN, t); } else { localStorage.removeItem(KUNCI_TOKEN); }
+    } catch (e) { /* mode penyamaran: token hanya bertahan selama halaman terbuka */ }
+  }
+
+  var tokenAdmin = MODE_REPO ? bacaToken() : "";
+
+  function bolehUnggah() { return !MODE_REPO || !!tokenAdmin; }
+
+  function aturPeran() {
+    document.body.classList.toggle("boleh-unggah", bolehUnggah());
+    document.body.classList.toggle("admin", MODE_REPO && !!tokenAdmin);
+    var label = MODE_REPO ? "Upload data baru" : "Pakai file lain";
+    Array.prototype.forEach.call(document.querySelectorAll('[data-aksi="unggah"]'), function (b) {
+      b.textContent = b.classList.contains("btn-besar") ? (MODE_REPO ? "Upload data" : "Pilih file Excel") : label;
+    });
+    $("kosongCatatan").textContent = MODE_REPO
+      ? "File dicek dulu di browser. Kalau valid, file langsung menggantikan data untuk semua orang yang membuka link."
+      : "File dibaca di perangkat ini saja — tidak dikirim ke server mana pun — lalu disimpan di browser supaya tidak perlu diunggah ulang setiap kali dibuka.";
+  }
+
+  function gh(path, opsi, token) {
+    opsi = opsi || {};
+    var h = {
+      "Accept": "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+      "Authorization": "Bearer " + (token || tokenAdmin)
+    };
+    Object.keys(opsi.headers || {}).forEach(function (k) { h[k] = opsi.headers[k]; });
+    opsi.headers = h;
+    opsi.cache = "no-store";
+    return fetch("https://api.github.com" + path, opsi).then(null, function () {
+      throw new Error("Tidak bisa terhubung ke GitHub. Periksa koneksi internet, lalu coba lagi.");
+    });
+  }
+
+  function galatGh(status) {
+    return new Error(
+      status === 401 ? "token admin tidak berlaku (salah atau sudah kedaluwarsa). Tekan Keluar admin, lalu masuk lagi dengan token baru." :
+      status === 403 || status === 404 ? "token tidak punya izin menulis ke repo. Pastikan izin Contents diset \"Read and write\" untuk repo " + REPO + "." :
+      status === 409 || status === 422 ? "file di repo baru saja berubah. Coba upload sekali lagi." :
+      "GitHub menolak permintaan (kode " + status + "). Coba lagi sebentar lagi.");
+  }
+
+  function keBase64(bytes) {
+    var s = "";
+    for (var i = 0; i < bytes.length; i += 0x8000) {
+      s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    }
+    return btoa(s);
+  }
+
+  var PATH_BERSAMA = "/repos/" + REPO + "/contents/data/data-freezer.xlsx";
+
+  // sha file lama wajib disertakan untuk menimpa. Media type "object" dipakai
+  // karena file di atas 1 MB ditolak oleh media type bawaan.
+  function ambilSha() {
+    return gh(PATH_BERSAMA + "?ref=" + encodeURIComponent(CABANG),
+              { headers: { "Accept": "application/vnd.github.object+json" } })
+      .then(function (r) {
+        if (r.status === 404) { return null; }
+        if (!r.ok) { throw galatGh(r.status); }
+        return r.json().then(function (j) { return j.sha; });
+      });
+  }
+
+  function kirimKeRepo(bytes, nama, ulang) {
+    return ambilSha().then(function (sha) {
+      var isi = {
+        message: "Perbarui data freezer dari " + nama,
+        content: keBase64(bytes),
+        branch: CABANG
+      };
+      if (sha) { isi.sha = sha; }
+      return gh(PATH_BERSAMA, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(isi)
+      });
+    }).then(function (r) {
+      // 409 = ada perubahan lain di antara ambil sha dan simpan; ulang sekali.
+      if (r.status === 409 && !ulang) { return kirimKeRepo(bytes, nama, true); }
+      if (!r.ok) { throw galatGh(r.status); }
+      return r.json();
+    });
+  }
+
+  function cekToken(token) {
+    return gh("/repos/" + REPO, {}, token).then(function (r) {
+      if (r.status === 401) { throw new Error("Token tidak dikenali GitHub. Periksa lagi, mungkin ada karakter yang terpotong."); }
+      if (!r.ok) { throw new Error("Token ini tidak punya akses ke repo " + REPO + "."); }
+      return r.json().then(function (j) {
+        if (j.permissions && j.permissions.push === false) {
+          throw new Error("Akun pemilik token ini tidak punya izin tulis ke repo " + REPO + ".");
+        }
+      });
+    });
+  }
+
+  function bukaMasukAdmin() {
+    var d = $("adminDialog");
+    $("adminStatus").textContent = "";
+    $("adminToken").value = "";
+    if (typeof d.showModal === "function") { d.showModal(); } else { d.setAttribute("open", ""); }
+    $("adminToken").focus();
+  }
+
+  function tutupMasukAdmin() {
+    var d = $("adminDialog");
+    if (typeof d.close === "function") { d.close(); } else { d.removeAttribute("open"); }
+  }
+
+  $("adminBatal").addEventListener("click", tutupMasukAdmin);
+
+  $("adminForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var token = $("adminToken").value.trim();
+    if (!token) { return; }
+    $("adminStatus").textContent = "Memeriksa token…";
+    $("adminStatus").classList.remove("galat");
+    $("adminMasuk").disabled = true;
+    cekToken(token).then(function () {
+      tokenAdmin = token;
+      simpanToken(token);
+      aturPeran();
+      tutupMasukAdmin();
+      if (!items.length) { tampilKosong(); }
+      pesan("Masuk sebagai admin. Tombol Upload data baru sekarang tersedia.", 7000);
+    }, function (err) {
+      $("adminStatus").textContent = err.message;
+      $("adminStatus").classList.add("galat");
+    }).then(function () { $("adminMasuk").disabled = false; });
+  });
+
+  function keluarAdmin() {
+    tokenAdmin = "";
+    simpanToken("");
+    aturPeran();
+    if (!items.length) { tampilKosong(); }
+    pesan("Keluar dari mode admin di perangkat ini.");
+  }
+
+  aturPeran();
+
   /* ---------- data bersama ---------- */
 
   // File Excel yang ditaruh di repo. Siapa pun yang membuka link langsung
@@ -1022,7 +1209,8 @@
     tampilKosong("Pembaca Excel gagal dimuat. Muat ulang halaman ini.");
   } else {
     tampilKosong("", true);
-    Promise.all([muatBersama(), muatLokal()]).then(function (hasil) {
+    if (MODE_REPO && /[?&]admin\b/.test(location.search) && !tokenAdmin) { bukaMasukAdmin(); }
+    Promise.all([muatBersama(), MODE_REPO ? null : muatLokal()]).then(function (hasil) {
       dataBersama = hasil[0];
       var lokal = hasil[1];
       // Yang paling baru yang ditampilkan: unggahan pribadi yang sudah basi
@@ -1049,6 +1237,10 @@
     state.rows = [];
     renderList(true);
   }
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-aksi="keluar"]'), function (b) {
+    b.addEventListener("click", keluarAdmin);
+  });
 
   $("databar").addEventListener("click", function (e) {
     if (!e.target.closest('[data-aksi="bersama"]') || !dataBersama) { return; }

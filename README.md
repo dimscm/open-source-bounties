@@ -6,36 +6,44 @@ di peta** — termasuk mencari unit terdekat dari posisi Anda.
 
 ## Cara pakai
 
-Buka link web — data bersama tim langsung tampil, tidak perlu memilih file.
+Ada dua peran:
 
-### Data bersama
+| Peran | Cara buka | Bisa apa |
+| --- | --- | --- |
+| **Pengunjung** | link biasa | melihat peta & daftar, cari, filter, urutkan, lokasi terdekat |
+| **Admin** | link + `?admin` | semua di atas, plus **Upload data baru** untuk semua orang |
 
-Data yang tampil untuk semua orang adalah file **`data/data-freezer.xlsx`** di repo
-(di branch yang dipakai GitHub Pages). Web membacanya langsung di browser setiap
-kali dibuka, jadi tidak ada langkah konversi.
+Pengunjung tidak melihat tombol unggah sama sekali. Hak mengubah data bukan kata
+sandi di halaman, melainkan **izin tulis GitHub** ke repo ini — tanpa token yang
+sah, perubahan tidak bisa masuk walau seseorang menemukan link `?admin`.
 
-**Memperbarui data dari HP / laptop:**
+### Masuk sebagai admin (sekali per perangkat)
 
-1. Ganti nama file Excel terbaru menjadi persis `data-freezer.xlsx`.
-2. Buka repo di browser → pilih branch yang dipakai Pages → masuk folder `data`.
-3. **Add file → Upload files** → pilih file tadi → **Commit changes**.
-   File lama otomatis tertimpa karena namanya sama.
-4. Tunggu 1–3 menit sampai GitHub Pages selesai memperbarui. Pengunjung yang
-   membuka ulang web langsung mendapat data baru.
+1. Buat token GitHub: **Settings → Developer settings → Personal access tokens →
+   Fine-grained tokens → Generate new token**.
+   - *Repository access*: **Only select repositories** → `open-source-bounties`
+   - *Permissions → Repository permissions → Contents*: **Read and write**
+   - *Expiration*: sesuai kebutuhan (mis. 1 tahun) → **Generate token** → salin
+     token `github_pat_…`
+2. Buka link web dengan tambahan `?admin` di belakang, tempel token, **Masuk**.
+3. Token disimpan di browser perangkat itu saja. **Keluar admin** menghapusnya.
+
+### Memperbarui data
+
+Sebagai admin, tekan **Upload data baru** dan pilih file Excel terbaru (nama file
+bebas). File dicek dulu di browser — kalau kolom wajib tidak ada atau tidak ada
+koordinat yang valid, file ditolak dan data lama tetap dipakai. Kalau valid, file
+disimpan ke repo sebagai `data/data-freezer.xlsx` dan tampil untuk semua orang
+dalam 1–3 menit.
+
+Tanpa token pun data tetap bisa diperbarui manual: ganti nama file jadi
+`data-freezer.xlsx`, lalu di GitHub buka folder `data` pada branch yang dipakai
+Pages → **Add file → Upload files** → **Commit changes**.
 
 > **Data ini publik.** Siapa pun yang punya link — atau membuka repo — bisa melihat
 > seluruh isi file, termasuk nama PIC dan nomor telepon toko.
 
-### Memakai file sendiri
-
-Tombol **Pakai file lain** (atau seret file `.xlsx` ke halaman) membuka file lain
-tanpa mengubah data bersama. File itu dibaca di browser Anda saja dan disimpan di
-browser tersebut. Aturannya **yang paling baru yang tampil**: kalau data bersama di
-repo diperbarui setelah Anda mengunggah, web kembali ke data bersama dengan
-pemberitahuan. **Data bersama** mengembalikan tampilan kapan saja; **Hapus**
-membuang file Anda dari browser.
-
-Belum punya file-nya? Tekan **Unduh template** — isinya kolom yang sama persis
+Belum punya file-nya? Admin bisa menekan **Unduh template** di layar unggah — isinya kolom yang sama persis
 dengan template tim, plus sheet *Petunjuk*.
 
 ### Kolom yang dibaca

@@ -1027,3 +1027,96 @@ body.memuat .kosong-catatan,
 body.memuat .kosong p:not(.kosong-status) { display: none; }
 
 .databar-aksi [hidden] { display: none; }
+
+/* ---------- peran: pengunjung vs admin ---------- */
+
+/* Pengunjung hanya melihat: semua jalan untuk mengganti data disembunyikan. */
+body:not(.boleh-unggah) [data-aksi="unggah"],
+body:not(.boleh-unggah) .kosong-aksi,
+body:not(.boleh-unggah) .kosong-drop,
+body:not(.boleh-unggah) .kosong-catatan,
+body:not(.boleh-unggah) .kosong p:not(.kosong-status) { display: none; }
+
+body:not(.admin) .hanya-admin { display: none; }
+
+/* Tanda admin ditaruh di depan keterangan, bukan di judul yang bisa terpotong. */
+body.admin .databar-meta::before {
+  content: "Admin";
+  margin-right: 6px;
+  padding: 0 6px;
+  border-radius: 99px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-family: var(--font-ui);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+/* Admin punya dua tombol; kalau tidak muat, tombol turun ke baris kedua. */
+.databar { flex-wrap: wrap; row-gap: 8px; }
+.databar-info { flex: 1 1 190px; }
+.databar-meta { white-space: nowrap; }
+
+.kosong-keluar { justify-self: start; }
+
+.dialog {
+  width: min(92vw, 440px);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.dialog::backdrop { background: rgba(8, 20, 26, .45); }
+
+.dialog form {
+  display: grid;
+  gap: 12px;
+  padding: 22px;
+}
+
+.dialog h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.dialog p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+
+.dialog input[type="password"] {
+  width: 100%;
+  padding: 9px 10px;
+  font: 400 13px/1.4 var(--font-mono);
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+}
+
+.dialog input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.dialog-status:empty { display: none; }
+
+.dialog-status { font-weight: 500; }
+.dialog-status.galat { color: var(--red) !important; }
+
+.dialog-aksi {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.dialog-aksi .btn { flex: none; padding: 8px 16px; }
