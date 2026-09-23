@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Peta Freezer</title>
-<meta name="description" content="Daftar toko, inspector, dan lokasi unit freezer terpasang.">
+<meta name="description" content="Unggah data freezer, lihat toko, inspector, order 3 bulan terakhir, dan lokasi terdekat.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🧊</text></svg>">
 <link rel="stylesheet" href="assets/vendor/leaflet.css">
 <link rel="stylesheet" href="assets/vendor/MarkerCluster.css">
@@ -17,7 +17,7 @@
 <header class="topbar">
   <div class="brand">
     <h1>Peta Freezer</h1>
-    <p class="brand-sub">Toko · Inspector · Lokasi</p>
+    <p class="brand-sub">Toko · Inspector · Order · Lokasi</p>
   </div>
 
   <div class="stats">
@@ -29,10 +29,22 @@
 
 <main class="layout">
   <aside class="panel">
+    <div class="databar" id="databar" hidden>
+      <div class="databar-info">
+        <span class="databar-file" id="dataNama">–</span>
+        <span class="databar-meta" id="dataMeta">–</span>
+      </div>
+      <div class="databar-aksi">
+        <button type="button" class="btn btn-kecil" data-aksi="unggah">Ganti data</button>
+        <button type="button" class="linkbtn" data-aksi="hapus" title="Hapus data yang tersimpan di browser ini">Hapus</button>
+      </div>
+    </div>
+
     <div class="filters">
       <div class="field">
         <input type="search" id="q" placeholder="Cari toko, kode, alamat, serial…" autocomplete="off" aria-label="Cari toko, kode outlet, alamat, atau serial number">
       </div>
+      <div class="filter-lanjut" id="filterLanjut">
       <div class="field-row">
         <label class="field">
           <span>Inspector</span>
@@ -45,6 +57,27 @@
       </div>
       <div class="field-row">
         <label class="field">
+          <span>Order L3M</span>
+          <select id="fL3m">
+            <option value="">Semua</option>
+            <option value="tinggi">Tinggi (≥ 15)</option>
+            <option value="sedang">Sedang (5 – 15)</option>
+            <option value="rendah">Rendah (&lt; 5)</option>
+            <option value="kosong">Tidak ada data</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Urutkan</span>
+          <select id="fUrut">
+            <option value="">Urutan file</option>
+            <option value="dekat" disabled>Terdekat dari saya</option>
+            <option value="l3m-tinggi">Order L3M tertinggi</option>
+            <option value="l3m-rendah">Order L3M terendah</option>
+          </select>
+        </label>
+      </div>
+      <div class="field-row">
+        <label class="field">
           <span>Model</span>
           <select id="fModel"><option value="">Semua model</option></select>
         </label>
@@ -53,9 +86,13 @@
           <select id="fDistribusi"><option value="">Semua</option></select>
         </label>
       </div>
+      </div>
       <div class="filter-foot">
         <span id="resultCount" aria-live="polite">–</span>
-        <button type="button" id="reset" class="linkbtn">Reset filter</button>
+        <span class="filter-foot-aksi">
+          <button type="button" id="toggleFilter" class="linkbtn toggle-filter" aria-expanded="false" aria-controls="filterLanjut">Filter &amp; urutan</button>
+          <button type="button" id="reset" class="linkbtn">Reset filter</button>
+        </span>
       </div>
     </div>
 
@@ -65,10 +102,28 @@
 
   <section class="mapwrap">
     <div id="map" role="application" aria-label="Peta lokasi freezer"></div>
-    <div class="legend" id="legend"></div>
+    <div class="legend" id="legend" hidden></div>
     <p class="toast" id="toast" role="status" aria-live="polite" hidden></p>
   </section>
+
+  <section class="kosong" id="kosong" hidden>
+    <div class="kosong-kartu" id="dropzone">
+      <h2>Unggah data freezer</h2>
+      <p>Pilih file Excel hasil ekspor aset freezer. Kolom wajib: <code>OUTLET</code> dan
+        <code>LATITUDE AND LONGITUDE</code>; kolom lain dari template ikut ditampilkan kalau ada.</p>
+      <div class="kosong-aksi">
+        <button type="button" class="btn btn-primary btn-besar" data-aksi="unggah">Pilih file Excel</button>
+        <button type="button" class="btn btn-besar" id="unduhTemplate">Unduh template</button>
+      </div>
+      <p class="kosong-drop">atau seret file <code>.xlsx</code> ke sini</p>
+      <p class="kosong-catatan">File dibaca di perangkat ini saja — tidak dikirim ke server mana pun —
+        lalu disimpan di browser supaya tidak perlu diunggah ulang setiap kali dibuka.</p>
+      <p class="kosong-status" id="kosongStatus" role="status" aria-live="polite"></p>
+    </div>
+  </section>
 </main>
+
+<input type="file" id="fileInput" accept=".xlsx,.xls,.xlsm,.csv" hidden>
 
 <nav class="mobile-tabs" aria-label="Tampilan">
   <button type="button" data-view="list" class="active">Daftar</button>
@@ -77,7 +132,7 @@
 
 <script src="assets/vendor/leaflet.js"></script>
 <script src="assets/vendor/leaflet.markercluster.js"></script>
-<script src="data/freezers.js"></script>
+<script src="assets/vendor/xlsx.mini.min.js"></script>
 <script src="assets/app.js"></script>
 </body>
 </html>

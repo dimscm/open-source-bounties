@@ -21,7 +21,7 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(BASE, "dist", "peta-fre
 CSS = ["assets/vendor/leaflet.css", "assets/vendor/MarkerCluster.css",
        "assets/vendor/MarkerCluster.Default.css", "assets/app.css"]
 JS = ["assets/vendor/leaflet.js", "assets/vendor/leaflet.markercluster.js",
-      "data/basemap.js", "data/freezers.js", "assets/app.js"]
+      "assets/vendor/xlsx.mini.min.js", "data/basemap.js", "assets/app.js"]
 FONTS = [
     ("Plex Sans", 400, "assets/fonts/plex-sans-400.woff2"),
     ("Plex Sans", 500, "assets/fonts/plex-sans-500.woff2"),
